@@ -447,11 +447,42 @@ class SnowFieldSystem {
     updateVehiclePosition() {
         if (!this.cube) return;
 
+        // 记录移动前的位置
+        const oldPosition = this.cube.position.clone();
+        let moved = false;
+
         // 更新控制
-        if (this.keys.w) this.cube.position.z -= this.movementSpeed;
-        if (this.keys.s) this.cube.position.z += this.movementSpeed;
-        if (this.keys.a) this.cube.position.x -= this.movementSpeed;
-        if (this.keys.d) this.cube.position.x += this.movementSpeed;
+        if (this.keys.w) {
+            this.cube.position.z -= this.movementSpeed;
+            moved = true;
+        }
+        if (this.keys.s) {
+            this.cube.position.z += this.movementSpeed;
+            moved = true;
+        }
+        if (this.keys.a) {
+            this.cube.position.x -= this.movementSpeed;
+            moved = true;
+        }
+        if (this.keys.d) {
+            this.cube.position.x += this.movementSpeed;
+            moved = true;
+        }
+
+        // 如果移动了，计算旋转
+        if (moved) {
+            // 计算移动向量
+            const moveVector = new THREE.Vector3()
+                .subVectors(this.cube.position, oldPosition)
+                .normalize();
+
+            // 只有当移动向量有长度时才旋转
+            if (moveVector.length() > 0.001) {
+                // 计算在xz平面上的旋转角度
+                // Math.atan2 要求参数顺序为(y, x)
+                this.cube.rotation.y = Math.atan2(moveVector.x, moveVector.z);
+            }
+        }
 
         // 限制在雪地范围内
         const limit = this.snowSize / 2 - 1;
